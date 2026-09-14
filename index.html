@@ -319,7 +319,7 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
       Ficaremos muito felizes com sua presença! Confirme abaixo se você e seus
       acompanhantes, se houver, poderão vir celebrar esse momento tão especial com a gente.
       Para nos ajudar nessa doce espera, pedimos com carinho que cada convidado leve
-      um pacote de fralda <b>M</b>, <b>G</b> ou <b>XG</b> e, se quiser, um mimo para a
+      um pacote de fralda <b>P</b> ou <b>G</b> e, se quiser, um mimo para a
       princesa que está chegando! 💕
     </p>
   </section>
@@ -503,10 +503,10 @@ const API_TOKEN = "elisa-token-2026"; // deve bater com o Apps Script
 /* ============ METAS DE FRALDAS ============
    Quando um tamanho atinge a meta, ele deixa de aparecer no dropdown.
    Ajuste os valores abaixo se quiser mudar as metas. */
-const GOALS = { M: 38, G: 40, XG: 15 };
+const GOALS = { P: 20, G: 50 };
 /* Contagem atual carregada do Google Sheets (preenchida no boot).
    Se falhar por qualquer motivo, assume 0 e mantém todas as opções. */
-let sizeCounts = { M: 0, G: 0, XG: 0 };
+let sizeCounts = { P: 0, G: 0 };
 
 /* Senha admin: hash SHA-256 de "elisa2026" (troque se quiser outra) */
 const ADMIN_HASH = "b3b6f8f0c8f5a5f6c3d9e5b4a1f2e7c3d2b1a9e8f7c6b5a4d3e2f1c0b9a8d7e6"; // será recalculado no boot
@@ -569,8 +569,12 @@ function populateQtdFraldas(){
 function populateTamanhoSelect(selectEl){
   const prev = selectEl.value;
   selectEl.innerHTML = '<option value="">Selecione…</option>';
-  const labels = {M:'M (Médio)', G:'G (Grande)', XG:'XG (Extra Grande)'};
-  ['M','G','XG'].forEach(sz=>{
+  const labels =  {
+  P: 'P (Pequeno)',
+  G: 'G (Grande)'
+};
+
+['P','G'].forEach(sz=>{
     if(remainingFor(sz) > 0){
       const o = document.createElement('option');
       o.value = sz; o.textContent = labels[sz];
@@ -615,7 +619,7 @@ async function loadSizeCounts(){
     const res = await fetch(url);
     const data = await res.json();
     if(data.status !== 'ok') return;
-    const counts = { P:0, M:0, G:0 };
+    const counts = { P:0, G:0 };;
     (data.data||[]).forEach(r=>{
       if(r.comparece !== 'sim') return;
       if(counts[r.tamanho] !== undefined) counts[r.tamanho] += (+r.qtdFraldas||0);
@@ -628,7 +632,7 @@ async function loadSizeCounts(){
     sizeCounts = counts;
     refreshAllSizeSelects();
     // se algum tamanho zerou, mostra aviso amigável
-    const cheios = ['M','G','XG'].filter(s => remainingFor(s) === 0);
+    const cheios = ['P','G'].filter(s => remainingFor(s) === 0);
     if(cheios.length === 3){
       const box = document.createElement('div');
       box.className = 'welcome';
@@ -684,8 +688,11 @@ function renderCompanions(n){
   });
   list.innerHTML = '';
   if(!n||n<1) return;
-  const availSizes = ['M','G','XG'].filter(s => remainingFor(s) > 0);
-  const sizeLabels = {M:'M (Médio)', G:'G (Grande)', XG:'XG (Extra Grande)'};
+  const availSizes = ['P','G'].filter(s => remainingFor(s) > 0);
+  const sizeLabels =  {
+  P: 'P (Pequeno)',
+  G: 'G (Grande)'
+};
   for(let i=0;i<n;i++){
     const d = document.createElement('div');
     d.className='companion';
