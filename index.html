@@ -319,7 +319,7 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
       Ficaremos muito felizes com sua presença! Confirme abaixo se você e seus
       acompanhantes, se houver, poderão vir celebrar esse momento tão especial com a gente.
       Para nos ajudar nessa doce espera, pedimos com carinho que cada convidado leve
-      um pacote de fralda <b>M</b>, <b>G</b> ou <b>XG</b> e, se quiser, um mimo para a
+      um pacote de fralda <b>P</b> ou <b>G</b> e, se quiser, um mimo para a
       princesa que está chegando! 💕
     </p>
   </section>
@@ -350,14 +350,14 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
             <div class="field" id="f-tamanho">
               <label for="tamanho">Tamanho da fralda <span class="req">*</span></label>
               <select id="tamanho" name="tamanho">
-                <option value="">Selecione…</option>
+                <option value="">Selecione...</option>
               </select>
               <span class="error-msg">Selecione um tamanho.</span>
             </div>
             <div class="field" id="f-qtd">
               <label for="qtdFraldas">Quantidade de fraldas <span class="req">*</span></label>
               <select id="qtdFraldas" name="qtdFraldas">
-                <option value="">Selecione…</option>
+                <option value="">Selecione...</option>
               </select>
               <span class="error-msg">Selecione a quantidade.</span>
             </div>
@@ -443,9 +443,8 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
       <div class="stat-card mint">
         <div class="label">Fraldas por tamanho</div>
         <div class="stat-row">
-          <div>M<br><b id="st-m">–</b></div>
+          <div>P<br><b id="st-p">–</b></div>
           <div>G<br><b id="st-g">–</b></div>
-          <div>XG<br><b id="st-xg">–</b></div>
         </div>
       </div>
       <div class="stat-card gold">
@@ -460,10 +459,10 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
     </div>
 
     <div class="toolbar" role="toolbar" aria-label="Filtros">
-      <input type="search" id="searchInput" placeholder="🔍 Buscar por nome…" aria-label="Buscar por nome">
+      <input type="search" id="searchInput" placeholder="🔍 Buscar por nome..." aria-label="Buscar por nome">
       <select id="filterSize" aria-label="Filtrar por tamanho">
         <option value="">Todos os tamanhos</option>
-        <option value="M">M</option><option value="G">G</option><option value="XG">XG</option>
+        <option value="P">P</option><option value="G">G</option>
       </select>
       <select id="filterStatus" aria-label="Filtrar por status">
         <option value="">Todos os status</option>
@@ -485,7 +484,7 @@ tr.empty td{text-align:center;color:var(--ink-soft);padding:30px}
           </tr>
         </thead>
         <tbody id="rsvpTbody">
-          <tr class="empty"><td colspan="6"><div class="loader"><div class="spinner"></div>Carregando…</div></td></tr>
+          <tr class="empty"><td colspan="6"><div class="loader"><div class="spinner"></div>Carregando...</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -503,10 +502,10 @@ const API_TOKEN = "elisa-token-2026"; // deve bater com o Apps Script
 /* ============ METAS DE FRALDAS ============
    Quando um tamanho atinge a meta, ele deixa de aparecer no dropdown.
    Ajuste os valores abaixo se quiser mudar as metas. */
-const GOALS = { M: 38, G: 40, XG: 15 };
+const GOALS = { P: 20, G: 20 };
 /* Contagem atual carregada do Google Sheets (preenchida no boot).
    Se falhar por qualquer motivo, assume 0 e mantém todas as opções. */
-let sizeCounts = { M: 0, G: 0, XG: 0 };
+let sizeCounts = { P: 0, G: 0 };
 
 /* Senha admin: hash SHA-256 de "elisa2026" (troque se quiser outra) */
 const ADMIN_HASH = "b3b6f8f0c8f5a5f6c3d9e5b4a1f2e7c3d2b1a9e8f7c6b5a4d3e2f1c0b9a8d7e6"; // será recalculado no boot
@@ -555,7 +554,7 @@ function populateQtdFraldas(){
   const size   = tamSel.value;
   const prev   = qtdSel.value;
   const max    = remainingFor(size);
-  qtdSel.innerHTML = '<option value="">Selecione…</option>';
+  qtdSel.innerHTML = '<option value="">Selecione...</option>';
   for(let i=1;i<=max;i++){
     const o = document.createElement('option');
     o.value = i; o.textContent = i + (i===1?' pacote':' pacotes');
@@ -568,9 +567,9 @@ function populateQtdFraldas(){
 /** Preenche o dropdown de tamanho, ocultando tamanhos que atingiram a meta */
 function populateTamanhoSelect(selectEl){
   const prev = selectEl.value;
-  selectEl.innerHTML = '<option value="">Selecione…</option>';
-  const labels = {M:'M (Médio)', G:'G (Grande)', XG:'XG (Extra Grande)'};
-  ['M','G','XG'].forEach(sz=>{
+  selectEl.innerHTML = '<option value="">Selecione...</option>';
+  const labels = {P:'P (Pequeno)', G:'G (Grande)'};
+  ['P','G'].forEach(sz=>{
     if(remainingFor(sz) > 0){
       const o = document.createElement('option');
       o.value = sz; o.textContent = labels[sz];
@@ -592,7 +591,7 @@ function refreshAllSizeSelects(){
     const qtdSel = $('select[name=acomp_qtd]', wrap);
     const prev = qtdSel.value;
     const max = remainingFor(sel.value);
-    qtdSel.innerHTML = '<option value="">Selecione…</option>';
+    qtdSel.innerHTML = '<option value="">Selecione...</option>';
     for(let i=1;i<=max;i++){
       const o = document.createElement('option');
       o.value = i; o.textContent = i;
@@ -615,7 +614,7 @@ async function loadSizeCounts(){
     const res = await fetch(url);
     const data = await res.json();
     if(data.status !== 'ok') return;
-    const counts = { P:0, M:0, G:0 };
+    const counts = { P:0, G:0 };
     (data.data||[]).forEach(r=>{
       if(r.comparece !== 'sim') return;
       if(counts[r.tamanho] !== undefined) counts[r.tamanho] += (+r.qtdFraldas||0);
@@ -628,8 +627,8 @@ async function loadSizeCounts(){
     sizeCounts = counts;
     refreshAllSizeSelects();
     // se algum tamanho zerou, mostra aviso amigável
-    const cheios = ['M','G','XG'].filter(s => remainingFor(s) === 0);
-    if(cheios.length === 3){
+    const cheios = ['P','G'].filter(s => remainingFor(s) === 0);
+    if(cheios.length === 2){
       const box = document.createElement('div');
       box.className = 'welcome';
       box.style.cssText = 'background:#e6f5ee;border-color:#a8dcc0;color:#2f8f5e;text-align:center;margin-top:16px';
@@ -684,8 +683,8 @@ function renderCompanions(n){
   });
   list.innerHTML = '';
   if(!n||n<1) return;
-  const availSizes = ['M','G','XG'].filter(s => remainingFor(s) > 0);
-  const sizeLabels = {M:'M (Médio)', G:'G (Grande)', XG:'XG (Extra Grande)'};
+  const availSizes = ['P','G'].filter(s => remainingFor(s) > 0);
+  const sizeLabels = {P:'P (Pequeno)', G:'G (Grande)'};
   for(let i=0;i<n;i++){
     const d = document.createElement('div');
     d.className='companion';
@@ -713,7 +712,7 @@ function renderCompanions(n){
         <div class="field">
           <label>Tamanho da fralda <span class="req">*</span></label>
           <select name="acomp_tam" required>
-            <option value="">Selecione…</option>
+            <option value="">Selecione...</option>
             ${tamOptions}
           </select>
           <span class="error-msg">Selecione o tamanho.</span>
@@ -721,7 +720,7 @@ function renderCompanions(n){
         <div class="field">
           <label>Qtd de fraldas <span class="req">*</span></label>
           <select name="acomp_qtd" required>
-            <option value="">Selecione…</option>
+            <option value="">Selecione...</option>
             ${qtdOptions.join('')}
           </select>
           <span class="error-msg">Selecione a quantidade.</span>
@@ -734,7 +733,7 @@ function renderCompanions(n){
     on(tamSel,'change', ()=>{
       const max = remainingFor(tamSel.value);
       const prevQtd = qtdSel.value;
-      qtdSel.innerHTML = '<option value="">Selecione…</option>';
+      qtdSel.innerHTML = '<option value="">Selecione...</option>';
       for(let v=1; v<=max; v++){
         const o = document.createElement('option');
         o.value = v; o.textContent = v;
@@ -862,7 +861,7 @@ on($('#rsvpForm'),'submit', async (e)=>{
   const btn = $('#submitBtn');
   const label = $('.btn-label', btn);
   btn.disabled = true;
-  label.innerHTML = '<span class="spinner"></span> Enviando…';
+  label.innerHTML = '<span class="spinner"></span> Enviando...';
 
   const payload = collectPayload();
   try{
@@ -962,7 +961,7 @@ function showDash(){
 
 async function loadData(){
   const tbody = $('#rsvpTbody');
-  tbody.innerHTML = `<tr class="empty"><td colspan="6"><div class="loader"><div class="spinner"></div>Carregando…</div></td></tr>`;
+  tbody.innerHTML = `<tr class="empty"><td colspan="6"><div class="loader"><div class="spinner"></div>Carregando...</div></td></tr>`;
   try{
     const url = API_URL + '?token=' + encodeURIComponent(API_TOKEN);
     const res = await fetch(url);
@@ -1038,31 +1037,28 @@ function renderTable(rows){
 function escapeHtml(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 function updateStats(){
-  let adultos=0, m=0, g=0, xg=0, nao=0;
+  let adultos=0, p=0, g=0, nao=0;
   allRows.forEach(r=>{
     if(r.comparece==='sim'){
       adultos += 1 + (parseInt(r.qtdAcompanhantes)||0);
       // titular
-      if(r.tamanho==='M') m += +r.qtdFraldas||0;
+      if(r.tamanho==='P') p += +r.qtdFraldas||0;
       if(r.tamanho==='G') g += +r.qtdFraldas||0;
-      if(r.tamanho==='XG') xg += +r.qtdFraldas||0;
       // acompanhantes
       let det = [];
       try{ det = typeof r.acompanhantes==='string' ? JSON.parse(r.acompanhantes||'[]') : (r.acompanhantes||[]); }catch(e){}
       det.forEach(a=>{
-        if(a.tamanho==='M') m += +a.qtdFraldas||0;
+        if(a.tamanho==='P') p += +a.qtdFraldas||0;
         if(a.tamanho==='G') g += +a.qtdFraldas||0;
-        if(a.tamanho==='XG') xg += +a.qtdFraldas||0;
       });
     } else if(r.comparece==='nao'){
       nao++;
     }
   });
   $('#st-adultos').textContent = adultos;
-  $('#st-m').textContent = m;
+  $('#st-p').textContent = p;
   $('#st-g').textContent = g;
-  $('#st-xg').textContent = xg;
-  $('#st-total').textContent = m+g+xg;
+  $('#st-total').textContent = p+g;
   $('#st-nao').textContent = nao;
 }
 
